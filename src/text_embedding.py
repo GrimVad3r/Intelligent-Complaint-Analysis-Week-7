@@ -58,7 +58,7 @@ class EmbeddingGenerator:
             embeddings = self.model.encode(
                 texts,
                 batch_size=batch_size,
-                show_progress_bar=False,
+                show_progress_bar=True,
                 convert_to_numpy=True
             )
             return embeddings
