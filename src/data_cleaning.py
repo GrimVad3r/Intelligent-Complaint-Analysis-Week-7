@@ -41,6 +41,10 @@ def clean_text(text):
 
         # Remove extra whitespace
         text = re.sub(r'\s+', ' ', text).strip()
+
+        # FIX: Remove leading punctuation and special characters often left by boilerplate
+        # This matches common characters like commas or colons at the start of the string
+        text = re.sub(r'^[,\s:;.-]+', '', text)
         
         return text
 
