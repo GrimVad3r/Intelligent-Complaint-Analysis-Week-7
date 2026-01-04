@@ -1,1 +1,9 @@
 data/
+vector_store/FAISS/faiss_index.bin
+vector_store/FAISS/metadata.pkl
+vector_store/CHROMADB/d258ff81-68ec-4aa2-b5a2-962497e9292c/link_lists.bin
+vector_store/CHROMADB/d258ff81-68ec-4aa2-b5a2-962497e9292c/length.bin
+vector_store/CHROMADB/d258ff81-68ec-4aa2-b5a2-962497e9292c/index_metadata.pickle
+vector_store/CHROMADB/d258ff81-68ec-4aa2-b5a2-962497e9292c/header.bin
+vector_store/CHROMADB/d258ff81-68ec-4aa2-b5a2-962497e9292c/data_level0.bin
+vector_store/CHROMADB/chroma.sqlite3
