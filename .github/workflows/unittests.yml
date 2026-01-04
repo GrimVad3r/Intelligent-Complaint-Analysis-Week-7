@@ -16,9 +16,13 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # Upgrading pip is best practice for production environments
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
 
       - name: Run tests with pytest
         run: |
-          pytest tests/ --doctest-modules --junitxml=junit/test-results.xml
+          # Setting PYTHONPATH to the current workspace (.) 
+          # allows 'from src.filename import function' to work correctly.
+          PYTHONPATH=. pytest tests/ --doctest-modules --junitxml=junit/test-results.xml
