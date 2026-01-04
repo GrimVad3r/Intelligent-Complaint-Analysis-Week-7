@@ -1,5 +1,6 @@
 import pytest
 from src.data_cleaning import clean_text
+import numpy as np
 
 # Test cases for automated validation
 def test_clean_text_basic():
