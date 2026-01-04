@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+from src.text_embedding import EmbeddingGenerator
 
 def test_embedding_dimensions():
     """Ensure the output vector size matches the model specification."""

@@ -1,6 +1,7 @@
 import pytest
 import pandas as pd
 import numpy as np
+from src.text_vectorization import ChromaVectorStore
 
 def test_add_documents_schema_validation():
     """Verify that the store rejects DataFrames with missing columns."""
