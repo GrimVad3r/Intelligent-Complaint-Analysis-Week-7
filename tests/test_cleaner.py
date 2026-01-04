@@ -1,5 +1,5 @@
 import pytest
-from src.text_cleaner import clean_text
+from src.data_cleaning import clean_text
 
 # Test cases for automated validation
 def test_clean_text_basic():
