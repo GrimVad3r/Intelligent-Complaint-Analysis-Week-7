@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import os
+from src.text_vectorization import FAISSVectorStore
 
 def test_faiss_integrity_check():
     """Verify that adding mismatched data raises an exception."""

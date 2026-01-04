@@ -1,5 +1,6 @@
 import pytest
 import pandas as pd
+from src.text_transformations import ComplaintChunker
 
 def test_chunking_overlap_logic():
     """Verify that chunks are actually created and respect overlap."""
