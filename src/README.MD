@@ -87,5 +87,3 @@ print(f"Answer: {result['answer']}")
 | **`text_transformations.py`** | Recursive text chunking and metadata mapping. |
 | **`text_vectorization.py`** | FAISS and ChromaDB implementation for vector storage. |
 | **`text_embedding.py`** | Vector generation using Sentence-Transformers. |
-
-**Would you like me to create a shell script to automate the initialization of this pipeline?**
