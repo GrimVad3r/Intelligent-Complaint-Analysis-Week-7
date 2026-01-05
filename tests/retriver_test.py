@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
+from src.retriver import ComplaintRetriever
 
 def test_retriever_filtering():
     # Mock dependencies

@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
+from src.pipeline_RAG import RAGPipeline
 
 def test_pipeline_no_results():
     """Verify the pipeline handles empty retrieval gracefully."""
