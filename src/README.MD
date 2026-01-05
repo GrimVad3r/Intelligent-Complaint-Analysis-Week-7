@@ -1,63 +1,77 @@
-# Data Cleaning Module
+# CrediTrust Complaint Analysis RAG Pipeline
 
-This script provides a specialized `ComplaintCleaner` class designed to preprocess and standardize consumer complaint datasets. It handles missing values, removes noise from text narratives, and prepares the data for downstream tasks like embedding and semantic search.
-
----
-
-## 🛠️ Key Features
-
-* **Null Data Handling**: Automatically identifies and removes rows with missing `Complaint ID` or `Consumer complaint narrative` to ensure data quality.
-* **Narrative Cleaning**: Implements a `clean_text` method that standardizes complaint narratives by:
-* Converting all text to lowercase.
-* Removing special characters and punctuation (keeping only alphanumeric characters and basic whitespace).
-* Stripping leading and trailing whitespace.
-
-
-* **Product Categorization**: Maps varied and complex product descriptions into five simplified categories (e.g., "Credit card or prepaid card" becomes "Credit Card") for easier analysis.
-* **Pipeline Ready**: Includes a `process_complaints` method that executes the entire cleaning and transformation workflow on a pandas DataFrame.
+This repository contains a production-ready **Retrieval-Augmented Generation (RAG)** pipeline designed for **CrediTrust Financial**. The system processes customer complaint narratives, stores them in a vector database, and utilizes a Large Language Model (LLM) to provide evidence-based insights into financial product issues.
 
 ---
 
-## 📊 Mapping Strategy
+## 🏗️ System Architecture
 
-The script standardizes diverse product entries into a consistent taxonomy:
+The pipeline is divided into modular components for data cleaning, transformation, vector storage, and intelligent generation:
 
-| Original Product Category | Simplified Category |
-| --- | --- |
-| Credit card / Prepaid card | Credit Card |
-| Checking / Savings account | Savings Account |
-| Money transfer / Virtual currency | Money Transfers |
-| Mortgage / Loans | Personal Loan |
-| Other financial services | Others |
+### 1. Data Processing & Cleaning
+
+* **`data_cleaning.py`**: Normalizes raw complaint text by removing boilerplate language (e.g., "Dear Sir/Madam"), handling null values, and standardizing whitespace.
+* **`text_transformations.py`**: Uses `RecursiveCharacterTextSplitter` to break long narratives into semantically meaningful chunks while preserving metadata like Product Category and Issue type.
+
+### 2. Semantic Embedding & Retrieval
+
+* **`text_embedding.py`**: Generates numerical vectors using `Sentence-Transformers` (default: `all-MiniLM-L6-v2`). Includes GPU acceleration and SSL resilience for restricted environments.
+* **`text_vectorization.py`**: Offers dual-vector store support:
+* **FAISS**: Optimized for fast, in-memory exact search.
+* **ChromaDB**: A persistent database supporting complex metadata filtering.
+
+
+* **`retriver.py`**: Orchestrates the retrieval logic, allowing the system to fetch the top-k most relevant complaint excerpts, optionally filtered by product line.
+
+### 3. RAG Pipeline
+
+* **`pipeline_RAG.py`**: The core execution engine. It combines the retriever with a `Mistral-7B` (or similar) LLM to generate natural language answers based strictly on the retrieved context.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Key Features
 
-### Installation
+* **Resilient Infrastructure**: Built-in logging, SSL verification toggles for local development, and robust error handling for model initialization and search operations.
+* **Evidence-Based Answers**: The `PromptTemplate` enforces strict adherence to provided context, requiring the LLM to cite specific examples from complaints.
+* **Metadata Awareness**: Maintains the link between text chunks and their original metadata (Complaint ID, Company, Product), enabling filtered searches.
+* **Simplified Taxonomy**: Standardizes diverse financial products into five core categories: Credit Cards, Personal Loans, Savings Accounts, Money Transfers, and Others.
 
-Ensure you have `pandas` installed:
+---
+
+## 🛠️ Installation
 
 ```bash
-pip install pandas
+pip install pandas numpy torch transformers sentence-transformers faiss-cpu chromadb langchain-text-splitters requests
 
 ```
 
-### Usage
+---
+
+## 💻 Usage Example
 
 ```python
-import pandas as pd
-from data_cleaning import ComplaintCleaner
+from retriver import ComplaintRetriever
+from pipeline_RAG import ComplaintGenerator, RAGPipeline
+from text_vectorization import FAISSVectorStore
+from sentence_transformers import SentenceTransformer
 
-# 1. Load your raw dataset
-df = pd.read_csv('raw_complaints.csv')
+# 1. Initialize Components
+embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+vector_store = FAISSVectorStore.load("index.faiss", "meta.pkl", embedding_dim=384)
+retriever = ComplaintRetriever(vector_store, embedding_model)
+generator = ComplaintGenerator(model_name="mistralai/Mistral-7B-Instruct-v0.2")
 
-# 2. Initialize and run the cleaner
-cleaner = ComplaintCleaner()
-cleaned_df = cleaner.process_complaints(df)
+# 2. Setup Pipeline
+rag_pipeline = RAGPipeline(retriever, generator)
 
-# 3. Save the processed data
-cleaned_df.to_csv('filtered_complaints.csv', index=False)
+# 3. Query the System
+result = rag_pipeline.answer_question(
+    "What are the common themes in credit card unauthorized charge complaints?",
+    product_filter="Credit Card",
+    k=5
+)
+
+print(f"Answer: {result['answer']}")
 
 ```
 
@@ -67,93 +81,11 @@ cleaned_df.to_csv('filtered_complaints.csv', index=False)
 
 | File | Responsibility |
 | --- | --- |
-| `data_cleaning.py` | Contains the `ComplaintCleaner` class for text normalization and column mapping. |
-# Consumer Complaint Semantic Search Pipeline
+| **`pipeline_RAG.py`** | Manages LLM prompting and the end-to-end RAG workflow. |
+| **`retriver.py`** | Handles query embedding and context retrieval logic. |
+| **`data_cleaning.py`** | Text normalization and boilerplate removal. |
+| **`text_transformations.py`** | Recursive text chunking and metadata mapping. |
+| **`text_vectorization.py`** | FAISS and ChromaDB implementation for vector storage. |
+| **`text_embedding.py`** | Vector generation using Sentence-Transformers. |
 
-
-This project provides a comprehensive modular pipeline for processing, embedding, and storing consumer complaint narratives for semantic search. It leverages **LangChain** for intelligent text splitting, **Sentence-Transformers** for high-quality vector generation, and provides dual support for **FAISS** and **ChromaDB** vector stores.
-
----
-
-## 🛠️ Module Overview
-
-### 1. Text Transformation (`text_transformations.py`)
-
-This module handles the initial preparation of raw complaint data, ensuring long narratives are broken down into semantically meaningful segments.
-
-* **Recursive Splitting**: Utilizes `RecursiveCharacterTextSplitter` to split text at natural boundaries like double newlines or periods to maintain context.
-* **Metadata Management**: Automatically extracts and maps dataset columns (Product, Issue, Company, State) to each individual chunk for downstream filtering.
-* **Safety Features**: Includes built-in handling for null or non-string inputs to prevent pipeline crashes during batch processing.
-
-### 2. Text Embedding (`text_embedding.py`)
-
-Converts processed text chunks into numerical vectors (embeddings) that represent the semantic meaning of the complaint.
-
-* **Model Selection**: Defaults to the `all-MiniLM-L6-v2` model for an optimal balance between performance and inference speed.
-* **Hardware Optimization**: Automatically detects and utilizes **NVIDIA GPU (CUDA)** for faster embedding generation, falling back to CPU if necessary.
-* **SSL Configuration**: Includes pre-configured environment overrides to bypass SSL verification issues in restricted network environments.
-
-### 3. Vector Storage (`text_vectorization.py`)
-
-Provides two distinct options for storing and querying your complaint embeddings.
-
-#### **FAISS (Facebook AI Similarity Search)**
-
-* **Lightweight**: Best for fast, in-memory similarity searches using Euclidean distance (`IndexFlatL2`).
-* **Persistence**: Simple `save` and `load` methods to export the index and metadata to disk via pickle.
-
-#### **ChromaDB**
-
-* **Persistent Storage**: Uses a `PersistentClient` to maintain a database on disk between sessions.
-* **Metadata Filtering**: Supports complex queries with "where" filters (e.g., searching only within specific product categories).
-* **Batch Ingestion**: Features a batching mechanism to efficiently add large volumes of documents (1,000 per batch).
-
----
-
-## 🚀 Quick Start
-
-### Installation
-
-```bash
-pip install pandas numpy torch sentence-transformers faiss-cpu chromadb langchain-text-splitters
-
-```
-
-### Usage Example
-
-```python
-import pandas as pd
-from text_transformations import ComplaintChunker
-from text_embedding import EmbeddingGenerator
-from text_vectorization import ChromaVectorStore
-
-# 1. Process and Chunk Data
-df = pd.read_csv("complaints.csv")
-chunker = ComplaintChunker(chunk_size=500, chunk_overlap=50)
-df_chunks = chunker.chunk_dataset(df)
-
-# 2. Generate Embeddings
-generator = EmbeddingGenerator()
-embeddings = generator.generate_embeddings(df_chunks['text'].tolist())
-df_chunks['embedding'] = embeddings.tolist()
-
-# 3. Store in ChromaDB
-vector_store = ChromaVectorStore(persist_directory="./complaint_db")
-vector_store.add_documents(df_chunks)
-
-# 4. Perform a Semantic Search
-query_vector = generator.generate_embeddings(["Unauthorized credit card charges"])
-results = vector_store.search(query_vector[0], k=3)
-
-```
-
----
-
-## 📂 File Structure
-
-| File | Responsibility | Key Class |
-| --- | --- | --- |
-| `text_transformations.py` | Text cleaning and recursive chunking | `ComplaintChunker` |
-| `text_embedding.py` | Vector generation with GPU support | `EmbeddingGenerator` |
-| `text_vectorization.py` | Storage, indexing, and similarity search | `FAISSVectorStore`, `ChromaVectorStore` |
-
+**Would you like me to create a shell script to automate the initialization of this pipeline?**
