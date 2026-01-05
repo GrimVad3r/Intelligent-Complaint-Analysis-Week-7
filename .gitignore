@@ -18,3 +18,4 @@ vector_store/CHROMADB/d258ff81-68ec-4aa2-b5a2-962497e9292c/data_level0.bin
 vector_store/CHROMADB/chroma.sqlite3
 vector_store/FAISS/faiss_full_index.bin
 vector_store/FAISS/full_metadata.pkl
+vector_store/FAISS/faiss_full_git index.bin
